@@ -63,16 +63,20 @@ class CreateTaskSerializer (serializers.Serializer):
     
     title = serializers.CharField(max_length=100)
     description = serializers.CharField(max_length=500)
-    start_date = serializers.DateTimeField()
-    end_date = serializers.DateTimeField()
+    start_date = serializers.DateTimeField(default=None)
+    end_date = serializers.DateTimeField(default=None)
     
     
     def create(self):
         
         if self.data['start_date'] == None and self.data['end_date']:
             
-            self.data['start_date'] = datetime.now()
-            self.data['end_date'] = self.data['start_date'] + timedelta(days=7)
+            self.data['start_date'] = datetime.now().strftime("%Y-%m-%d")
+            self.data['end_date'] = (self.data['start_date'] + timedelta(days=7)).strftime("%Y-%m-%d")
+        
+        # else:
+        #     self.data['start_date_str'] = datetime(self.data['start_date']).strftime("%Y-%m-%d")
+        #     self.data['end_date_str'] = datetime(self.data['end_date']).strftime("%Y-%m-%d")
         
         step = Task(**self.data)
         step.save()
@@ -82,6 +86,11 @@ class CreateTaskSerializer (serializers.Serializer):
         
         try:
             valid_data = CreateTaskSchema(**data)
+            
+            # acomodamos el formato de las fechas
+            valid_data.start_date = valid_data.start_date.replace(tzinfo=None)
+            valid_data.end_date = valid_data.end_date.replace(tzinfo=None)
+            
         except ValidationError as e:
             raise serializers.ValidationError(e)
         
@@ -93,16 +102,18 @@ class CreateTaskSerializer (serializers.Serializer):
         
         if valid_data.start_date == None and valid_data.end_date != None:
             raise serializers.ValidationError({'date_error': 'You cannot define the date on which the task will end without first having defined the date on which it begins.'})
+        if valid_data.start_date != None and valid_data.end_date == None:
+            raise serializers.ValidationError({'date_error': 'you have to define the date on which the task will be completed.'})
         
-        if valid_data.start_date != None:
-            if valid_data.start_date < date_now:
-                raise serializers.ValidationError({'start_date': 'You cannot enter a date that is less than the current time'})
+        # if valid_data.start_date != None:
+        #     if valid_data.start_date <= date_now:
+        #         raise serializers.ValidationError({'start_date': 'You cannot enter a date that is less than the current time'})
 
-        if valid_data.end_date != None:
-            if valid_data.end_date <= date_now:
-                raise serializers.ValidationError({'end_date': 'the end date cannot be less than or equal to the current time'})
+        # if valid_data.end_date != None:
+        #     if valid_data.end_date <= date_now:
+        #         raise serializers.ValidationError({'end_date': 'the end date cannot be less than or equal to the current time'})
         
-        if valid_data.end_date <= valid_data.start_date:
-            raise serializers.ValidationError({'date_error': 'The date on which the step ends cannot be less than the date on which it starts.'})
+        if valid_data.end_date < valid_data.start_date:
+            raise serializers.ValidationError({'date_error': 'The date on which the task ends cannot be less than the date on which it starts.'})
         
         return data

@@ -1,0 +1,20 @@
+[
+    {
+        "model": "tasks.Status",
+        "pk":1,
+        "fields": {
+            "name": "in progress",
+            "description": "the task is running",
+            "status": true
+        }
+    },
+    {
+        "model": "tasks.Status",
+        "pk":2,
+        "fields": {
+            "name": "done",
+            "description": "the task has been completed",
+            "status": true
+        }
+    }
+]
