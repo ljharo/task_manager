@@ -1,0 +1,117 @@
+[
+    {
+        "model": "manager.RestAction",
+        "pk":1,
+        "fields": {
+            "name": "GET",
+            "description": "Consult or obtain data",
+            "status": true
+        }
+    },
+    {
+        "model": "manager.RestAction",
+        "pk":2,
+        "fields": {
+            "name": "POST",
+            "description": "Enter data",
+            "status": true
+        }
+    },
+    {
+        "model": "manager.RestAction",
+        "pk":3,
+        "fields": {
+            "name": "PUT",
+            "description": "update data",
+            "status": true
+        }
+    },
+    {
+        "model": "manager.RestAction",
+        "pk":4,
+        "fields": {
+            "name": "DELTE",
+            "description": "delete data",
+            "status": true
+        }
+    },
+
+    {
+        "model": "manager.Status",
+        "pk":1,
+        "fields": {
+            "name": "in progress",
+            "description": "the request is in progress",
+            "status": true
+        }
+    },
+    {
+        "model": "manager.Status",
+        "pk":2,
+        "fields": {
+            "name": "accepted",
+            "description": "the request was accepted",
+            "status": true
+        }
+    },
+    {
+        "model": "manager.Status",
+        "pk":3,
+        "fields": {
+            "name": "rejected",
+            "description": "the request has just been rejected",
+            "status": true
+        }
+    },
+    {
+        "model": "manager.Status",
+        "pk":4,
+        "fields": {
+            "name": "error",
+            "description": "The way in which the request was made is wrong.",
+            "status": true
+        }
+    },
+
+
+    {
+        "model": "manager.Api",
+        "pk":1,
+        "fields": {
+            "action_id": 2,
+            "name": "create_task",
+            "endpoint": "task/create/",
+            "status": true
+        }
+    },
+    {
+        "model": "manager.Api",
+        "pk":2,
+        "fields": {
+            "action_id": 1,
+            "name": "get_task",
+            "endpoint": "task/get/<int:id>",
+            "status": true
+        }
+    },
+    {
+        "model": "manager.Api",
+        "pk":3,
+        "fields": {
+            "action_id": 1,
+            "name": "task_list_range",
+            "endpoint": "tasks/get/<str:from>/<str:to>",
+            "status": true
+        }
+    },
+    {
+        "model": "manager.Api",
+        "pk":4,
+        "fields": {
+            "action_id": 3,
+            "name": "put_tasks",
+            "endpoint": "/tasks/put/<int:id>",
+            "status": true
+        }
+    }
+]
