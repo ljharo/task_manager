@@ -57,30 +57,33 @@ class CreateStepSerializer (serializers.Serializer):
         
         if valid_data.end_date <= valid_data.start_date:
             raise serializers.ValidationError({'date_error': 'The date on which the step ends cannot be less than the date on which it starts.'})
-    
 
+
+# Task
 class CreateTaskSerializer (serializers.Serializer):
+    
+    current_time = datetime.now()
     
     title = serializers.CharField(max_length=100)
     description = serializers.CharField(max_length=500)
-    start_date = serializers.DateTimeField(default=None)
-    end_date = serializers.DateTimeField(default=None)
+    start_date = serializers.DateTimeField(default=current_time)
+    end_date = serializers.DateTimeField(default=(current_time + timedelta(days=7)))
     
     
     def create(self):
         
-        if self.data['start_date'] == None and self.data['end_date']:
-            
-            self.data['start_date'] = datetime.now().strftime("%Y-%m-%d")
-            self.data['end_date'] = (self.data['start_date'] + timedelta(days=7)).strftime("%Y-%m-%d")
+        # self.data['start_date'] = self.data['start_date'].strftime("%Y-%m-%d")
+        # self.data['end_date'] = self.data['end_date'].strftime("%Y-%m-%d")
+    
+        task = Task(**self.data)
+        task.save()
         
-        # else:
-        #     self.data['start_date_str'] = datetime(self.data['start_date']).strftime("%Y-%m-%d")
-        #     self.data['end_date_str'] = datetime(self.data['end_date']).strftime("%Y-%m-%d")
+        result = {
+            'task_id': task.id,
+            'result': 'the task was created successfully'
+        }
         
-        step = Task(**self.data)
-        step.save()
-        return {'result': 'the task was created successfully'}
+        return result
     
     def validate(self, data):
         
@@ -116,4 +119,81 @@ class CreateTaskSerializer (serializers.Serializer):
         if valid_data.end_date < valid_data.start_date:
             raise serializers.ValidationError({'date_error': 'The date on which the task ends cannot be less than the date on which it starts.'})
         
+        return data
+
+
+class UpdateTaskSerializer(serializers.Serializer):
+    
+    current_time = datetime.now()
+    
+    task_id = serializers.IntegerField()
+    title = serializers.CharField(max_length=100, default=None)
+    description = serializers.CharField(max_length=500, default=None)
+    start_date = serializers.DateTimeField(default=None)
+    end_date = serializers.DateTimeField(default=None)
+    
+    def create(self):
+        
+        data = self.data
+        task = Task.objects.filter(id=data['task_id']).first()
+        
+        if data['title'] != None:
+            task.title = data['title']
+        
+        if data['description'] != None:
+            task.description = data['description']
+        
+        if data['start_date'] != None:
+            task.start_date = data['start_date']
+        
+        if data['end_date'] != None:
+            task.end_date = data['end_date']
+        
+        task.save()
+        
+        result = {
+            'task_id': task.id,
+            'result': 'the task was update successfully'
+        }
+        
+        return result
+    
+    def validate(self, data):
+        
+        task = Task.objects.filter(id=data['task_id']).first()
+
+        if task == None:
+            raise serializers.ValidationError({'task_id': 'the task_id does not exist'})
+        
+        data_copy = data.copy()
+        del data_copy['task_id']
+        
+        if data['title'] != None:
+            
+            if data['title'] == task.title:
+                data['tittle'] = None
+            else:
+                title = Task.objects.filter(title=data['title']).first()
+                if title != None:
+                    if title.id != task.id:
+                        raise serializers.ValidationError({'title': 'There is already a task that contains that title'})
+        
+        start_date = datetime(data['start_date']) if data['start_date'] == None else data['start_date']
+        end_date = datetime(data['end_date']) if data['end_date'] == None else data['end_date']
+        
+        if start_date != None and  end_date != None:
+            if start_date > end_date:
+                raise serializers.ValidationError({'date_error': 'The date on which the race begins cannot be greater than the date on which it ends.'})
+
+        if start_date != None and  end_date == None:
+            if start_date > task.end_date:
+                raise serializers.ValidationError({'date_error': 'The date on which the race begins cannot be greater than the date on which it ends.'})
+        
+        if start_date == None and  end_date != None:
+            if end_date > task.start_date:
+                raise serializers.ValidationError({'date_error': 'The date on which the task is completed cannot be less than the date on which it begins.'})
+        
+        if any(data_copy.items()):
+            raise serializers.ValidationError({"fields":"you have to enter values ​​to be able to update"})
+            
         return data
