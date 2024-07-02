@@ -2,8 +2,11 @@ import os
 import requests
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from datetime import datetime
+
 
 from .serializer import CreateStepSerializer, CreateTaskSerializer, UpdateTaskSerializer
+from .models import Task
 
 PORT = os.environ.get('PORT')
 INTERNAL_KEY = os.environ.get('KEY_INTERNAL')
@@ -12,7 +15,7 @@ LOG_UPDATE_URL = f'http://localhost:{PORT}/manager/log/update/'
 
 class TaskView (APIView):
     
-    def get(self, request):
+    def get(self, request, id=None):
         pass
     
     def post(self, request) -> Response:
@@ -30,7 +33,7 @@ class TaskView (APIView):
 
         else: 
             return Response(response.json() ,status=400)
-    
+
         serializer = CreateTaskSerializer(data=request.data)  # Crea un serializer con los datos de la solicitud
         
         if serializer.is_valid():  # Verifica si los datos son válidos
@@ -63,7 +66,7 @@ class TaskView (APIView):
         data = {
             'internal_key': INTERNAL_KEY,
             'address_ip': request.META['REMOTE_ADDR'],
-            'api_name': 'put_task',
+            'api_name': 'put_tasks',
             'method': request.method
         }
         response = requests.post(LOG_REGISTER_URL, json= data)
@@ -74,11 +77,11 @@ class TaskView (APIView):
         else: 
             return Response(response.json() ,status=400)
     
-        serializer = CreateTaskSerializer(data=request.data)  # Crea un serializer con los datos de la solicitud
+        serializer = UpdateTaskSerializer(Task.objects.get(id=1), data=request.data, partial=True)  # Crea un serializer con los datos de la solicitud
         
         if serializer.is_valid():  # Verifica si los datos son válidos
             
-            result = serializer.create()
+            result = serializer.update(serializer.instance, serializer.validated_data)
             result['log_id'] = log_id
             
             data2 = {
@@ -102,7 +105,7 @@ class TaskView (APIView):
             
             return Response(serializer.errors, status=400)  # Devuelve la respuesta con los errores de validación y un estado 400 (Bad Request)
     
-    def delete(self, request):
+    def delete(self, request, id):
         pass
 
 
